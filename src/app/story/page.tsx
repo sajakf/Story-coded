@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Home, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Star, Volume2, VolumeX } from "lucide-react";
 
 interface StoryPage {
   pageNumber: number;
@@ -36,6 +36,28 @@ function Divider() {
       <span style={{ color: "#c9a96e", fontSize: 12 }}>❧</span>
       <span style={{ color: "#c9a96e", fontSize: 18 }}>✦</span>
       <div className="flex-1 h-px" style={{ background: "linear-gradient(to left,transparent,#c9a96e)" }} />
+    </div>
+  );
+}
+
+function SoundWave({ playing }: { playing: boolean }) {
+  const bars = [0.4, 0.8, 1.0, 0.6, 0.9, 0.5, 0.7];
+  return (
+    <div className="flex items-center gap-0.5" style={{ height: 20 }}>
+      {bars.map((h, i) => (
+        <div
+          key={i}
+          className="w-1 rounded-full"
+          style={{
+            height: playing ? `${h * 100}%` : "25%",
+            background: "#f5e060",
+            opacity: playing ? 0.9 : 0.4,
+            transition: "height 0.15s ease",
+            animation: playing ? `soundwave ${0.6 + i * 0.08}s ease-in-out infinite alternate` : "none",
+            animationDelay: playing ? `${i * 0.07}s` : "0s",
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -82,6 +104,78 @@ function usePageImage(prompt: string | undefined) {
   return { imageUrl, loading, failed };
 }
 
+/* ── TTS hook ── */
+function usePageAudio(
+  text: string | undefined,
+  onEnd: () => void,
+  enabled: boolean
+) {
+  const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+  const onEndRef = useRef(onEnd);
+  onEndRef.current = onEnd;
+
+  const stop = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    setPlaying(false);
+  }, []);
+
+  useEffect(() => {
+    stop();
+    if (!text || !enabled) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    fetch("/api/text-to-speech", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error("TTS failed");
+        return r.arrayBuffer();
+      })
+      .then((buf) => {
+        if (cancelled) return;
+        const blob = new Blob([buf], { type: "audio/mpeg" });
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+
+        const audio = new Audio(url);
+        audioRef.current = audio;
+
+        audio.onended = () => {
+          setPlaying(false);
+          setTimeout(() => onEndRef.current(), 800);
+        };
+        audio.onerror = () => setPlaying(false);
+
+        audio.play().then(() => setPlaying(true)).catch(() => {});
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => {
+      cancelled = true;
+      stop();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, enabled]);
+
+  return { playing, loading, stop };
+}
+
 /* ── Main page ── */
 export default function StoryPage() {
   const router = useRouter();
@@ -89,6 +183,7 @@ export default function StoryPage() {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [animKey, setAnimKey] = useState(0);
+  const [audioEnabled, setAudioEnabled] = useState(true);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("story");
@@ -97,7 +192,34 @@ export default function StoryPage() {
   }, [router]);
 
   const page = story?.pages[current];
+  const total = story?.pages.length ?? 0;
+  const isFirst = current === 0;
+  const isLast = current === total - 1;
+
   const { imageUrl, loading: imgLoading, failed: imgFailed } = usePageImage(page?.imagePrompt);
+
+  const goTo = useCallback((idx: number, dir: "forward" | "back") => {
+    setDirection(dir);
+    setAnimKey((k) => k + 1);
+    setCurrent(idx);
+  }, []);
+
+  const handleAudioEnd = useCallback(() => {
+    if (!isLast) {
+      goTo(current + 1, "forward");
+    }
+  }, [isLast, current, goTo]);
+
+  const { playing: audioPlaying, loading: audioLoading, stop: stopAudio } = usePageAudio(
+    page?.content,
+    handleAudioEnd,
+    audioEnabled
+  );
+
+  const navigate = (idx: number, dir: "forward" | "back") => {
+    stopAudio();
+    goTo(idx, dir);
+  };
 
   if (!story || !page) {
     return (
@@ -107,16 +229,6 @@ export default function StoryPage() {
       </div>
     );
   }
-
-  const total = story.pages.length;
-  const isFirst = current === 0;
-  const isLast = current === total - 1;
-
-  const goTo = (idx: number, dir: "forward" | "back") => {
-    setDirection(dir);
-    setAnimKey((k) => k + 1);
-    setCurrent(idx);
-  };
 
   return (
     <main
@@ -135,7 +247,16 @@ export default function StoryPage() {
         <p className="font-bold text-sm drop-shadow hidden md:block truncate max-w-xs" style={{ color: "rgba(240,232,208,0.8)" }}>
           {story.title}
         </p>
-        <div className="w-24" />
+        {/* Audio toggle */}
+        <button
+          onClick={() => { stopAudio(); setAudioEnabled((v) => !v); }}
+          className="flex items-center gap-2 font-bold px-4 py-2 rounded-xl transition-all text-sm"
+          style={{ background: "rgba(245,224,96,0.1)", border: "1px solid rgba(245,224,96,0.25)", color: "#f5e060" }}
+          title={audioEnabled ? "Mute narration" : "Enable narration"}
+        >
+          {audioEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
+          <span className="hidden md:inline">{audioEnabled ? "Sound On" : "Sound Off"}</span>
+        </button>
       </div>
 
       {/* Book */}
@@ -214,10 +335,19 @@ export default function StoryPage() {
                 <div className="absolute top-2 left-4"><Corner /></div>
                 <div className="absolute top-2 right-4"><Corner flip /></div>
 
-                <div className="text-center pt-6 pb-1">
+                <div className="flex items-center justify-center gap-3 pt-6 pb-1">
                   <span className="text-xs font-black tracking-[0.2em] uppercase" style={{ color: "#a07040" }}>
                     Chapter {current + 1}
                   </span>
+                  {/* Audio indicator */}
+                  {audioEnabled && (
+                    <div className="flex items-center gap-1.5">
+                      {audioLoading && (
+                        <span className="text-xs font-semibold" style={{ color: "#c9a96e", opacity: 0.6 }}>loading…</span>
+                      )}
+                      {(audioPlaying || audioLoading) && <SoundWave playing={audioPlaying} />}
+                    </div>
+                  )}
                 </div>
 
                 <Divider />
@@ -240,7 +370,7 @@ export default function StoryPage() {
                   {story.pages.map((_, i) => (
                     <button
                       key={i}
-                      onClick={() => goTo(i, i > current ? "forward" : "back")}
+                      onClick={() => navigate(i, i > current ? "forward" : "back")}
                       className="rounded-full transition-all"
                       style={{
                         width: i === current ? "24px" : "10px",
@@ -262,7 +392,7 @@ export default function StoryPage() {
           {/* Navigation */}
           <div className="flex items-center justify-between mt-5 px-1">
             <button
-              onClick={() => goTo(current - 1, "back")}
+              onClick={() => navigate(current - 1, "back")}
               disabled={isFirst}
               className="flex items-center gap-2 font-bold px-5 py-3 rounded-2xl transition-all hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
               style={{ background: "rgba(245,224,96,0.1)", color: "#f5e060", border: "1px solid rgba(245,224,96,0.25)" }}
@@ -279,7 +409,7 @@ export default function StoryPage() {
               </button>
             ) : (
               <button
-                onClick={() => goTo(current + 1, "forward")}
+                onClick={() => navigate(current + 1, "forward")}
                 className="flex items-center gap-2 font-bold px-5 py-3 rounded-2xl transition-all hover:scale-105 shadow-lg"
                 style={{ background: "linear-gradient(135deg,#f5e060,#c9900a)", color: "#1a0e00" }}
               >

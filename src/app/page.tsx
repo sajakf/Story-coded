@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, BookOpen, Feather } from "lucide-react";
+import { Sparkles, BookOpen, Feather, Camera, X } from "lucide-react";
 
 /* ── Scene components ── */
 
@@ -142,11 +142,46 @@ function FogLayer() {
 
 /* ── Main page ── */
 
+async function compressImage(file: File, maxDim = 512): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.createElement("img");
+      img.onload = () => {
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = reject;
+      img.src = e.target!.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Home() {
   const [idea, setIdea] = useState("");
+  const [childImage, setChildImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      setChildImage(compressed);
+    } catch {
+      console.error("Failed to compress image");
+    }
+    e.target.value = "";
+  };
 
   const handleGenerate = async () => {
     if (!idea.trim() || isLoading) return;
@@ -156,7 +191,7 @@ export default function Home() {
       const res = await fetch("/api/generate-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea: idea.trim() }),
+        body: JSON.stringify({ idea: idea.trim(), childImage: childImage ?? null }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -206,7 +241,7 @@ export default function Home() {
             </div>
             <h1 className="text-5xl md:text-6xl font-black tracking-tight drop-shadow-lg"
               style={{ color: "#f0e8d0" }}>
-              Story<span style={{ color: "#f5e060" }}>Land</span>
+              Dreams<span style={{ color: "#f5e060" }}>Land</span>
             </h1>
           </div>
           <p className="text-sm font-bold tracking-widest uppercase" style={{ color: "rgba(200,180,120,0.7)" }}>
@@ -254,6 +289,50 @@ export default function Home() {
               <div className="absolute bottom-3 right-4 text-xs font-semibold" style={{ color: "rgba(245,224,96,0.4)" }}>
                 {idea.length}/300
               </div>
+            </div>
+
+            {/* Child photo upload */}
+            <div className="mb-5">
+              <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "rgba(245,224,96,0.5)" }}>
+                ✦ Make your child the star!
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              {childImage ? (
+                <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: "rgba(245,224,96,0.08)", border: "1px solid rgba(245,224,96,0.25)" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={childImage} alt="Child" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" style={{ border: "2px solid rgba(245,224,96,0.5)" }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold" style={{ color: "#f5e060" }}>Photo added! ✨</p>
+                    <p className="text-xs font-semibold" style={{ color: "rgba(200,180,120,0.65)" }}>Your child will be the hero of this story</p>
+                  </div>
+                  <button
+                    onClick={() => setChildImage(null)}
+                    className="flex-shrink-0 p-1.5 rounded-lg transition-all"
+                    style={{ background: "rgba(220,60,60,0.15)", color: "#f08080" }}
+                    title="Remove photo"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all disabled:opacity-50"
+                  style={{ background: "rgba(245,224,96,0.06)", border: "1.5px dashed rgba(245,224,96,0.3)", color: "rgba(245,224,96,0.7)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(245,224,96,0.12)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(245,224,96,0.5)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(245,224,96,0.06)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(245,224,96,0.3)"; }}
+                >
+                  <Camera size={20} />
+                  <span className="text-sm font-bold">Upload a child&apos;s photo (optional)</span>
+                </button>
+              )}
             </div>
 
             {/* Quick suggestions */}

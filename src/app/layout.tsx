@@ -9,8 +9,8 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "StoryLand — Where Every Idea Becomes an Adventure",
-  description: "Create magical 4-page stories for kids powered by AI",
+  title: "DreamsLand — Where Dreams Become Adventures",
+  description: "Create magical 4-page illustrated stories for kids powered by AI",
 };
 
 export default function RootLayout({
