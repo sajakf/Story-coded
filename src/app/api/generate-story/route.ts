@@ -19,9 +19,9 @@ Return ONLY this exact JSON (no other text, no markdown):
 }`;
 
 const MODELS = [
+  "google/gemini-1.5-flash",
   "openai/gpt-4o-mini",
   "anthropic/claude-3-haiku",
-  "mistralai/mistral-7b-instruct",
 ];
 
 async function generateStoryText(idea: string, apiKey: string): Promise<string> {
