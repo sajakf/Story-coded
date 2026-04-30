@@ -4,39 +4,31 @@
   --font-nunito: var(--font-nunito);
 }
 
-/* ── Keyframe animations ── */
+/* ── Keyframes ── */
 
 @keyframes balloon-float {
   0%, 100% { transform: translateY(0px) rotate(-2deg); }
   50%       { transform: translateY(-22px) rotate(2deg); }
 }
 
-@keyframes cloud-left {
-  0%, 100% { transform: translateX(0); }
-  50%       { transform: translateX(28px); }
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50%       { opacity: 1;    transform: scale(1.2); }
 }
 
-@keyframes cloud-right {
-  0%, 100% { transform: translateX(0); }
-  50%       { transform: translateX(-20px); }
+@keyframes moon-glow {
+  0%, 100% { filter: drop-shadow(0 0 18px #f5e060) drop-shadow(0 0 40px #f5c030); }
+  50%       { filter: drop-shadow(0 0 30px #f5e060) drop-shadow(0 0 70px #f5c030); }
 }
 
-@keyframes bird-fly {
-  0%   { transform: translateX(0) translateY(0); }
-  25%  { transform: translateX(12px) translateY(-6px); }
-  50%  { transform: translateX(24px) translateY(0); }
-  75%  { transform: translateX(36px) translateY(-4px); }
-  100% { transform: translateX(48px) translateY(0); }
+@keyframes owl-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96%            { transform: scaleY(0.08); }
 }
 
-@keyframes leaf-spin {
-  0%   { transform: rotate(0deg) translateX(0); opacity: 1; }
-  100% { transform: rotate(360deg) translateX(20px); opacity: 0; }
-}
-
-@keyframes sparkle-pop {
-  0%, 100% { opacity: 0; transform: scale(0); }
-  50%       { opacity: 1; transform: scale(1); }
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
 }
 
 @keyframes page-slide-in {
@@ -56,35 +48,34 @@
 
 @keyframes shimmer {
   0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes fog-drift {
+  0%   { transform: translateX(-30px); opacity: 0.08; }
+  50%  { opacity: 0.18; }
+  100% { transform: translateX(30px);  opacity: 0.08; }
 }
 
 /* ── Utility classes ── */
 
-.animate-balloon     { animation: balloon-float 5s ease-in-out infinite; }
-.animate-cloud-left  { animation: cloud-left 9s ease-in-out infinite; }
-.animate-cloud-right { animation: cloud-right 7s ease-in-out infinite; }
-.animate-bird        { animation: bird-fly 3s ease-in-out infinite; }
-.animate-leaf        { animation: leaf-spin 2s ease-out infinite; }
-.animate-sparkle     { animation: sparkle-pop 2s ease-in-out infinite; }
-.animate-page-in     { animation: page-slide-in 0.4s cubic-bezier(0.22,1,0.36,1); }
+.animate-twinkle     { animation: twinkle var(--dur, 3s) ease-in-out infinite; }
+.animate-moon-glow   { animation: moon-glow 4s ease-in-out infinite; }
+.animate-owl-blink   { animation: owl-blink 5s ease-in-out infinite; }
+.animate-float-slow  { animation: float-slow 6s ease-in-out infinite; }
+.animate-page-in     { animation: page-slide-in  0.4s cubic-bezier(0.22,1,0.36,1); }
 .animate-page-back   { animation: page-slide-back 0.4s cubic-bezier(0.22,1,0.36,1); }
 .animate-bounce-soft { animation: bounce-soft 2s ease-in-out infinite; }
+.animate-fog         { animation: fog-drift 12s ease-in-out infinite; }
 
-/* Shimmer button */
+/* Gold shimmer button */
 .btn-shimmer {
-  background: linear-gradient(
-    90deg,
-    #f0a830 0%,
-    #f7d06a 40%,
-    #f0a830 60%,
-    #e08820 100%
-  );
+  background: linear-gradient(90deg, #c9900a 0%, #f5e060 35%, #ffd700 50%, #f5e060 65%, #c9900a 100%);
   background-size: 200% auto;
   animation: shimmer 3s linear infinite;
 }
 
-/* Parchment texture for story pages */
+/* Parchment for book pages */
 .parchment {
   background-color: #fdf5e0;
   background-image:
@@ -92,11 +83,20 @@
     radial-gradient(ellipse at 80% 80%, rgba(210,160,80,0.12) 0%, transparent 60%);
 }
 
-/* Decorative page border */
 .page-border {
   border: 3px solid transparent;
   background-clip: padding-box;
   box-shadow:
     inset 0 0 0 2px rgba(160,120,60,0.25),
     0 8px 32px rgba(80,50,20,0.15);
+}
+
+/* Night card glass */
+.night-card {
+  background: rgba(8, 14, 45, 0.88);
+  border: 1px solid rgba(245, 224, 96, 0.25);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 0 60px rgba(245, 224, 96, 0.08),
+    0 24px 64px rgba(0, 0, 0, 0.6);
 }

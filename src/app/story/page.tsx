@@ -121,17 +121,18 @@ export default function StoryPage() {
   return (
     <main
       className="min-h-screen flex flex-col items-center"
-      style={{ background: "linear-gradient(160deg,#1a3a5c 0%,#2d6a9f 40%,#3d8b5a 100%)" }}
+      style={{ background: "linear-gradient(180deg,#05091a 0%,#0a1535 35%,#0d1e4a 70%,#0f2255 100%)" }}
     >
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 md:px-8 pt-5 pb-3">
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-bold px-4 py-2 rounded-xl backdrop-blur border border-white/20 transition-all text-sm"
+          className="flex items-center gap-2 font-bold px-4 py-2 rounded-xl transition-all text-sm"
+          style={{ background: "rgba(245,224,96,0.1)", border: "1px solid rgba(245,224,96,0.25)", color: "#f5e060" }}
         >
           <Home size={15} /> New Story
         </button>
-        <p className="text-white/80 font-bold text-sm drop-shadow hidden md:block truncate max-w-xs">
+        <p className="font-bold text-sm drop-shadow hidden md:block truncate max-w-xs" style={{ color: "rgba(240,232,208,0.8)" }}>
           {story.title}
         </p>
         <div className="w-24" />
@@ -264,7 +265,7 @@ export default function StoryPage() {
               onClick={() => goTo(current - 1, "back")}
               disabled={isFirst}
               className="flex items-center gap-2 font-bold px-5 py-3 rounded-2xl transition-all hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
-              style={{ background: "rgba(255,255,255,0.15)", color: "white", border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}
+              style={{ background: "rgba(245,224,96,0.1)", color: "#f5e060", border: "1px solid rgba(245,224,96,0.25)" }}
             >
               <ChevronLeft size={20} /> Previous
             </button>
@@ -280,7 +281,7 @@ export default function StoryPage() {
               <button
                 onClick={() => goTo(current + 1, "forward")}
                 className="flex items-center gap-2 font-bold px-5 py-3 rounded-2xl transition-all hover:scale-105 shadow-lg"
-                style={{ background: "rgba(255,255,255,0.9)", color: "#4a2c10" }}
+                style={{ background: "linear-gradient(135deg,#f5e060,#c9900a)", color: "#1a0e00" }}
               >
                 Next Page <ChevronRight size={20} />
               </button>

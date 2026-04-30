@@ -2,81 +2,141 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, BookOpen, Star, Feather } from "lucide-react";
+import { Sparkles, BookOpen, Feather } from "lucide-react";
 
-/* ── Inline SVG scene components ── */
+/* ── Scene components ── */
 
-function HotAirBalloon() {
+const STAR_DATA = [
+  { top: "6%",  left: "8%",  size: 18, color: "#a8d8a0", dur: "2.8s", delay: "0s"    },
+  { top: "12%", left: "22%", size: 12, color: "#c4a8d8", dur: "3.4s", delay: "0.6s"  },
+  { top: "5%",  left: "40%", size: 20, color: "#e8b870", dur: "2.5s", delay: "1.1s"  },
+  { top: "18%", left: "55%", size: 10, color: "#89b4e8", dur: "4.0s", delay: "0.3s"  },
+  { top: "9%",  left: "70%", size: 14, color: "#f0d060", dur: "3.1s", delay: "1.8s"  },
+  { top: "22%", left: "82%", size: 16, color: "#a8d8a0", dur: "2.9s", delay: "0.9s"  },
+  { top: "30%", left: "12%", size: 10, color: "#e8b870", dur: "3.7s", delay: "1.4s"  },
+  { top: "35%", left: "30%", size: 8,  color: "#c4a8d8", dur: "2.6s", delay: "2.1s"  },
+  { top: "28%", left: "65%", size: 12, color: "#f0a8a8", dur: "3.3s", delay: "0.5s"  },
+  { top: "42%", left: "88%", size: 9,  color: "#89b4e8", dur: "4.2s", delay: "1.7s"  },
+  { top: "48%", left: "5%",  size: 11, color: "#f0d060", dur: "3.0s", delay: "0.2s"  },
+  { top: "15%", left: "92%", size: 15, color: "#a8e8d0", dur: "2.7s", delay: "1.3s"  },
+];
+
+function Stars() {
   return (
-    <svg width="90" height="120" viewBox="0 0 90 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Balloon panels */}
-      <ellipse cx="45" cy="52" rx="38" ry="44" fill="#E53E3E" />
-      <path d="M7 52 Q45 8 83 52" fill="#F6C90E" opacity="0.9"/>
-      <path d="M7 52 Q45 96 83 52" fill="#E53E3E" opacity="0.85"/>
-      <path d="M24 12 Q45 4 66 12 L66 92 Q45 100 24 92 Z" fill="#3B82F6" opacity="0.25"/>
-      {/* Seams */}
-      <line x1="45" y1="8" x2="45" y2="96" stroke="rgba(0,0,0,0.12)" strokeWidth="1.5"/>
-      <line x1="7" y1="52" x2="83" y2="52" stroke="rgba(0,0,0,0.12)" strokeWidth="1.5"/>
-      {/* Star on balloon */}
-      <polygon points="45,28 47.5,35 55,35 49,39.5 51.5,47 45,42.5 38.5,47 41,39.5 35,35 42.5,35"
-        fill="white" opacity="0.9"/>
-      {/* Ropes */}
-      <line x1="32" y1="92" x2="28" y2="106" stroke="#92400E" strokeWidth="1.5"/>
-      <line x1="45" y1="95" x2="45" y2="106" stroke="#92400E" strokeWidth="1.5"/>
-      <line x1="58" y1="92" x2="62" y2="106" stroke="#92400E" strokeWidth="1.5"/>
-      {/* Basket */}
-      <rect x="26" y="106" width="38" height="14" rx="4" fill="#92400E"/>
-      <rect x="28" y="108" width="34" height="10" rx="3" fill="#B45309"/>
-      <line x1="35" y1="106" x2="35" y2="120" stroke="#78350F" strokeWidth="1.5"/>
-      <line x1="55" y1="106" x2="55" y2="120" stroke="#78350F" strokeWidth="1.5"/>
+    <>
+      {STAR_DATA.map((s, i) => (
+        <div
+          key={i}
+          className="absolute pointer-events-none animate-twinkle"
+          style={{ top: s.top, left: s.left, "--dur": s.dur, animationDelay: s.delay } as React.CSSProperties}
+        >
+          <svg width={s.size} height={s.size} viewBox="0 0 24 24" fill={s.color}>
+            <polygon points="12,2 14.5,9 22,9 16,14 18.5,21 12,17 5.5,21 8,14 2,9 9.5,9" />
+          </svg>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function Moon() {
+  return (
+    <div className="absolute top-6 right-10 md:right-20 animate-moon-glow pointer-events-none">
+      <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+        <defs>
+          <radialGradient id="mg" cx="40%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="#fffaaa" />
+            <stop offset="100%" stopColor="#f5e042" />
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="50" r="42" fill="url(#mg)" />
+        {/* Crescent cutout */}
+        <circle cx="76" cy="34" r="34" fill="#0d1535" />
+      </svg>
+    </div>
+  );
+}
+
+function TreeWithOwl() {
+  return (
+    <div className="absolute bottom-0 right-4 md:right-12 pointer-events-none" style={{ width: 160, height: 320 }}>
+      <svg width="160" height="320" viewBox="0 0 160 320" fill="none">
+        {/* Trunk */}
+        <path d="M55 320 L55 90 Q55 68 80 68 Q105 68 105 90 L105 320" fill="#2a1005" />
+        {/* Texture lines on trunk */}
+        <path d="M65 200 Q75 190 85 200" stroke="#1a0a03" strokeWidth="2" fill="none" />
+        <path d="M70 240 Q80 230 90 240" stroke="#1a0a03" strokeWidth="2" fill="none" />
+        {/* Tree hollow */}
+        <ellipse cx="80" cy="175" rx="26" ry="30" fill="#0f0602" />
+        {/* Branch left */}
+        <path d="M55 130 Q25 110 5 118" stroke="#2a1005" strokeWidth="14" strokeLinecap="round" fill="none" />
+        <path d="M55 150 Q30 140 12 148" stroke="#2a1005" strokeWidth="9" strokeLinecap="round" fill="none" />
+        {/* Branch right */}
+        <path d="M105 110 Q135 92 155 100" stroke="#2a1005" strokeWidth="12" strokeLinecap="round" fill="none" />
+        {/* ── Owl body (peeking) ── */}
+        {/* Fluffy body */}
+        <ellipse cx="80" cy="184" rx="22" ry="20" fill="#7a9ab8" />
+        {/* Belly */}
+        <ellipse cx="80" cy="188" rx="14" ry="14" fill="#c8dcea" />
+        {/* Left eye */}
+        <circle cx="71" cy="175" r="9" fill="#f0d060" />
+        <circle className="animate-owl-blink" cx="71" cy="175" r="6" fill="#18182a" style={{ transformOrigin: "71px 175px" }} />
+        <circle cx="73" cy="173" r="2" fill="white" />
+        {/* Right eye */}
+        <circle cx="89" cy="175" r="9" fill="#f0d060" />
+        <circle className="animate-owl-blink" cx="89" cy="175" r="6" fill="#18182a" style={{ transformOrigin: "89px 175px", animationDelay: "0.08s" }} />
+        <circle cx="91" cy="173" r="2" fill="white" />
+        {/* Beak */}
+        <polygon points="80,180 76,186 84,186" fill="#d08030" />
+        {/* Ear tufts */}
+        <polygon points="68,162 65,150 74,160" fill="#7a9ab8" />
+        <polygon points="92,162 95,150 86,160" fill="#7a9ab8" />
+        {/* Spots */}
+        <circle cx="72" cy="192" r="2.5" fill="white" opacity="0.65" />
+        <circle cx="80" cy="196" r="2"   fill="white" opacity="0.65" />
+        <circle cx="88" cy="192" r="2.5" fill="white" opacity="0.65" />
+        {/* Feet gripping hollow edge */}
+        <path d="M68 200 Q65 208 60 210 M68 200 Q66 210 63 214 M68 200 Q70 210 68 215" stroke="#b87030" strokeWidth="2" strokeLinecap="round" fill="none" />
+        <path d="M92 200 Q95 208 100 210 M92 200 Q94 210 97 214 M92 200 Q90 210 92 215" stroke="#b87030" strokeWidth="2" strokeLinecap="round" fill="none" />
+      </svg>
+    </div>
+  );
+}
+
+function Foliage() {
+  return (
+    <svg viewBox="0 0 1440 160" preserveAspectRatio="none" className="w-full" style={{ display: "block" }}>
+      {/* Back layer */}
+      <ellipse cx="80"   cy="140" rx="90"  ry="50" fill="#06091a" />
+      <ellipse cx="220"  cy="148" rx="110" ry="44" fill="#070b1e" />
+      <ellipse cx="400"  cy="145" rx="85"  ry="42" fill="#06091a" />
+      <ellipse cx="600"  cy="150" rx="130" ry="48" fill="#080d20" />
+      <ellipse cx="800"  cy="144" rx="100" ry="46" fill="#06091a" />
+      <ellipse cx="1000" cy="148" rx="120" ry="50" fill="#070b1e" />
+      <ellipse cx="1200" cy="145" rx="95"  ry="44" fill="#06091a" />
+      <ellipse cx="1380" cy="142" rx="80"  ry="46" fill="#070b1e" />
+      {/* Front layer (slightly lighter) */}
+      <ellipse cx="30"   cy="155" rx="60"  ry="36" fill="#0a1028" />
+      <ellipse cx="160"  cy="158" rx="75"  ry="32" fill="#0b1230" />
+      <ellipse cx="340"  cy="156" rx="65"  ry="34" fill="#0a1028" />
+      <ellipse cx="520"  cy="160" rx="90"  ry="38" fill="#0b1230" />
+      <ellipse cx="720"  cy="155" rx="70"  ry="36" fill="#0a1028" />
+      <ellipse cx="920"  cy="158" rx="85"  ry="34" fill="#0b1230" />
+      <ellipse cx="1100" cy="154" rx="75"  ry="36" fill="#0a1028" />
+      <ellipse cx="1300" cy="157" rx="80"  ry="38" fill="#0b1230" />
+      <ellipse cx="1430" cy="155" rx="50"  ry="32" fill="#0a1028" />
+      {/* Ground fill */}
+      <rect x="0" y="148" width="1440" height="12" fill="#060818" />
     </svg>
   );
 }
 
-function Cloud({ width = 120, opacity = 1 }: { width?: number; opacity?: number }) {
-  const h = Math.round(width * 0.5);
+function FogLayer() {
   return (
-    <svg width={width} height={h} viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity }}>
-      <ellipse cx="60" cy="40" rx="54" ry="20" fill="white"/>
-      <ellipse cx="40" cy="34" rx="28" ry="22" fill="white"/>
-      <ellipse cx="72" cy="30" rx="30" ry="24" fill="white"/>
-      <ellipse cx="52" cy="24" rx="22" ry="18" fill="white"/>
-    </svg>
-  );
-}
-
-function Hills() {
-  return (
-    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" className="w-full" xmlns="http://www.w3.org/2000/svg">
-      {/* Back hills */}
-      <path d="M0 180 Q180 60 360 140 Q540 220 720 100 Q900 0 1080 120 Q1260 200 1440 140 L1440 220 L0 220Z"
-        fill="#4A9B2F" opacity="0.6"/>
-      {/* Mid hills */}
-      <path d="M0 200 Q200 100 400 160 Q600 220 800 130 Q1000 60 1200 160 Q1350 220 1440 180 L1440 220 L0 220Z"
-        fill="#5DB340" opacity="0.8"/>
-      {/* Front grass */}
-      <path d="M0 210 Q300 170 600 200 Q900 230 1200 190 Q1350 175 1440 205 L1440 220 L0 220Z"
-        fill="#6ABF4B"/>
-      {/* Tree left */}
-      <rect x="120" y="148" width="10" height="36" fill="#6B3F1A"/>
-      <ellipse cx="125" cy="138" rx="24" ry="22" fill="#3D8B27"/>
-      <ellipse cx="125" cy="132" rx="18" ry="16" fill="#4AA830"/>
-      {/* Tree right */}
-      <rect x="1300" y="155" width="10" height="30" fill="#6B3F1A"/>
-      <ellipse cx="1305" cy="146" rx="20" ry="18" fill="#3D8B27"/>
-      <ellipse cx="1305" cy="141" rx="14" ry="13" fill="#4AA830"/>
-      {/* Path */}
-      <path d="M700 220 Q680 190 660 180 Q640 172 640 220Z" fill="#D4B896" opacity="0.7"/>
-    </svg>
-  );
-}
-
-function Bird() {
-  return (
-    <svg width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 6 Q8 0 0 2" stroke="#1E3A5F" strokeWidth="2" strokeLinecap="round" fill="none"/>
-      <path d="M12 6 Q16 0 24 2" stroke="#1E3A5F" strokeWidth="2" strokeLinecap="round" fill="none"/>
-    </svg>
+    <div className="absolute bottom-20 left-0 right-0 pointer-events-none overflow-hidden">
+      <div className="animate-fog h-16 opacity-10"
+        style={{ background: "linear-gradient(to right,transparent,#7090c0 30%,#7090c0 70%,transparent)" }} />
+    </div>
   );
 }
 
@@ -92,24 +152,21 @@ export default function Home() {
     if (!idea.trim() || isLoading) return;
     setIsLoading(true);
     setError("");
-
     try {
       const res = await fetch("/api/generate-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idea: idea.trim() }),
       });
-
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to generate story");
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Failed to generate story");
       }
-
       const story = await res.json();
       sessionStorage.setItem("story", JSON.stringify(story));
       router.push("/story");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Oops! Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Oops! Something went wrong.");
       setIsLoading(false);
     }
   };
@@ -119,116 +176,113 @@ export default function Home() {
   };
 
   const suggestions = [
-    "A brave little turtle who wants to fly",
-    "A dragon who is scared of fire",
-    "A tiny cloud that can't make rain",
-    "A lost star trying to find home",
+    "A brave little owl who is afraid of the dark",
+    "A star that fell from the sky",
+    "A dragon who collects moonbeams",
+    "A tiny wizard lost in the forest",
   ];
 
   return (
-    <main className="min-h-screen relative overflow-hidden" style={{ background: "linear-gradient(180deg, #b8e4f9 0%, #7ec8e8 40%, #5ab0d8 70%, #4a9b2f 100%)" }}>
+    <main
+      className="min-h-screen relative overflow-hidden flex flex-col"
+      style={{ background: "linear-gradient(180deg,#05091a 0%,#0a1535 30%,#0d1e4a 60%,#0f2255 100%)" }}
+    >
+      {/* ── Sky elements ── */}
+      <Stars />
+      <Moon />
 
-      {/* ── Sky layer ── */}
-
-      {/* Clouds */}
-      <div className="absolute top-6 left-[5%] animate-cloud-left pointer-events-none">
-        <Cloud width={160} opacity={0.95} />
-      </div>
-      <div className="absolute top-16 right-[8%] animate-cloud-right pointer-events-none">
-        <Cloud width={200} opacity={0.9} />
-      </div>
-      <div className="absolute top-28 left-[30%] animate-cloud-left pointer-events-none" style={{ animationDelay: "2s" }}>
-        <Cloud width={130} opacity={0.8} />
-      </div>
-      <div className="absolute top-4 right-[35%] animate-cloud-right pointer-events-none" style={{ animationDelay: "3.5s" }}>
-        <Cloud width={110} opacity={0.75} />
-      </div>
-
-      {/* Hot air balloon */}
-      <div className="absolute top-10 right-[14%] animate-balloon pointer-events-none">
-        <HotAirBalloon />
-      </div>
-
-      {/* Birds */}
-      <div className="absolute top-24 left-[22%] animate-bird pointer-events-none opacity-60">
-        <Bird />
-      </div>
-      <div className="absolute top-20 left-[25%] animate-bird pointer-events-none opacity-50" style={{ animationDelay: "0.5s" }}>
-        <Bird />
-      </div>
-
-      {/* Sparkle stars in sky */}
-      {[
-        { top: "8%", left: "18%", delay: "0s" },
-        { top: "15%", left: "60%", delay: "0.8s" },
-        { top: "6%", left: "75%", delay: "1.4s" },
-        { top: "22%", left: "42%", delay: "0.3s" },
-      ].map((s, i) => (
-        <div key={i} className="absolute animate-sparkle pointer-events-none" style={{ top: s.top, left: s.left, animationDelay: s.delay }}>
-          <Star size={10} className="text-yellow-200 fill-yellow-200" />
-        </div>
-      ))}
+      {/* Subtle fog/mist */}
+      <FogLayer />
 
       {/* ── Main content ── */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pb-32 pt-10">
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 pb-40 pt-10">
 
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8 animate-bounce-soft">
+        <div className="flex flex-col items-center mb-8 animate-float-slow">
           <div className="flex items-center gap-3 mb-2">
-            <div className="bg-white/30 backdrop-blur rounded-2xl p-3 shadow-lg">
-              <BookOpen size={36} className="text-white drop-shadow" strokeWidth={2.5} />
+            <div className="rounded-2xl p-3 shadow-lg"
+              style={{ background: "rgba(245,224,96,0.12)", border: "1px solid rgba(245,224,96,0.3)" }}>
+              <BookOpen size={36} className="drop-shadow" style={{ color: "#f5e060" }} strokeWidth={2.5} />
             </div>
-            <h1 className="text-5xl md:text-6xl font-black text-white drop-shadow-lg tracking-tight">
-              Story<span className="text-yellow-300">Land</span>
+            <h1 className="text-5xl md:text-6xl font-black tracking-tight drop-shadow-lg"
+              style={{ color: "#f0e8d0" }}>
+              Story<span style={{ color: "#f5e060" }}>Land</span>
             </h1>
           </div>
-          <p className="text-white/90 text-lg font-semibold drop-shadow tracking-wide">
-            ✨ Where every idea becomes an adventure!
+          <p className="text-sm font-bold tracking-widest uppercase" style={{ color: "rgba(200,180,120,0.7)" }}>
+            ✦ Where dreams become adventures ✦
           </p>
         </div>
 
         {/* Input card */}
         <div className="w-full max-w-xl">
-          <div className="bg-white/92 backdrop-blur-md rounded-3xl shadow-2xl p-8 border border-white/60">
+          <div className="night-card rounded-3xl p-8">
 
             {/* Card header */}
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md"
-                style={{ background: "linear-gradient(135deg, #f0a830, #e08820)" }}>
-                <Feather size={22} className="text-white" strokeWidth={2.5} />
+                style={{ background: "linear-gradient(135deg,#f5e060,#c9900a)" }}>
+                <Feather size={22} className="text-black" strokeWidth={2.5} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-green-900">Create Your Story</h2>
-                <p className="text-sm text-green-700/70 font-semibold">Tell us your idea, we&apos;ll write the magic!</p>
+                <h2 className="text-xl font-black" style={{ color: "#f0e8d0" }}>Create Your Story</h2>
+                <p className="text-sm font-semibold" style={{ color: "rgba(200,180,120,0.65)" }}>
+                  Tell us your idea, we&apos;ll write the magic!
+                </p>
               </div>
             </div>
 
             {/* Textarea */}
             <div className="relative mb-4">
               <textarea
-                className="w-full h-32 rounded-2xl border-2 border-green-200 bg-green-50/60 px-5 py-4 text-green-900 font-semibold text-base resize-none focus:outline-none focus:border-amber-400 focus:bg-amber-50/40 transition-all placeholder:text-green-400/70 placeholder:font-medium"
-                placeholder="e.g. A brave little turtle who dreams of flying over the mountains…"
+                className="w-full h-32 rounded-2xl px-5 py-4 text-base font-semibold resize-none focus:outline-none transition-all placeholder:font-medium"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1.5px solid rgba(245,224,96,0.2)",
+                  color: "#f0e8d0",
+                  caretColor: "#f5e060",
+                }}
+                placeholder="e.g. A tiny owl who is afraid of the dark but discovers the magic of stars…"
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 onKeyDown={handleKeyDown}
                 maxLength={300}
                 disabled={isLoading}
+                onFocus={(e) => (e.target.style.borderColor = "rgba(245,224,96,0.55)")}
+                onBlur={(e) => (e.target.style.borderColor = "rgba(245,224,96,0.2)")}
               />
-              <div className="absolute bottom-3 right-4 text-xs text-green-400 font-semibold">
+              <div className="absolute bottom-3 right-4 text-xs font-semibold" style={{ color: "rgba(245,224,96,0.4)" }}>
                 {idea.length}/300
               </div>
             </div>
 
             {/* Quick suggestions */}
             <div className="mb-5">
-              <p className="text-xs font-bold text-green-600/80 uppercase tracking-wider mb-2">Try one of these ✨</p>
+              <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "rgba(245,224,96,0.5)" }}>
+                ✦ Try one of these
+              </p>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((s) => (
                   <button
                     key={s}
                     onClick={() => setIdea(s)}
                     disabled={isLoading}
-                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-200 hover:bg-amber-100 hover:text-amber-800 hover:border-amber-300 transition-all disabled:opacity-50"
+                    className="text-xs font-bold px-3 py-1.5 rounded-full transition-all disabled:opacity-50"
+                    style={{
+                      background: "rgba(245,224,96,0.08)",
+                      border: "1px solid rgba(245,224,96,0.2)",
+                      color: "rgba(245,224,96,0.75)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLElement).style.background = "rgba(245,224,96,0.18)";
+                      (e.target as HTMLElement).style.borderColor = "rgba(245,224,96,0.5)";
+                      (e.target as HTMLElement).style.color = "#f5e060";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLElement).style.background = "rgba(245,224,96,0.08)";
+                      (e.target as HTMLElement).style.borderColor = "rgba(245,224,96,0.2)";
+                      (e.target as HTMLElement).style.color = "rgba(245,224,96,0.75)";
+                    }}
                   >
                     {s}
                   </button>
@@ -238,7 +292,8 @@ export default function Home() {
 
             {/* Error */}
             {error && (
-              <div className="mb-4 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold">
+              <div className="mb-4 px-4 py-3 rounded-2xl text-sm font-semibold"
+                style={{ background: "rgba(220,60,60,0.15)", border: "1px solid rgba(220,60,60,0.4)", color: "#f08080" }}>
                 {error}
               </div>
             )}
@@ -247,11 +302,12 @@ export default function Home() {
             <button
               onClick={handleGenerate}
               disabled={!idea.trim() || isLoading}
-              className="w-full h-14 rounded-2xl font-black text-white text-lg flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed btn-shimmer shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full h-14 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed btn-shimmer shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]"
+              style={{ color: "#1a0e00" }}
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-3 border-white/40 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                   <span>Creating story &amp; illustrations…</span>
                 </>
               ) : (
@@ -262,17 +318,19 @@ export default function Home() {
               )}
             </button>
 
-            <p className="text-center text-xs text-green-500/70 font-semibold mt-3">
-              Press <kbd className="bg-green-100 px-1.5 py-0.5 rounded text-green-700">⌘ Enter</kbd> to generate
+            <p className="text-center text-xs font-semibold mt-3" style={{ color: "rgba(245,224,96,0.35)" }}>
+              Press <kbd className="px-1.5 py-0.5 rounded text-xs" style={{ background: "rgba(245,224,96,0.1)", color: "rgba(245,224,96,0.6)" }}>⌘ Enter</kbd> to generate
             </p>
           </div>
-
         </div>
       </div>
 
-      {/* ── Hills at bottom ── */}
+      {/* ── Tree + Owl ── */}
+      <TreeWithOwl />
+
+      {/* ── Dark foliage ── */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-        <Hills />
+        <Foliage />
       </div>
     </main>
   );
