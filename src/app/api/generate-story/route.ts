@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "OpenRouter API key not configured" }, { status: 500 });
   }
 
-  const model = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct:free";
+  const model = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-001";
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
