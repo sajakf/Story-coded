@@ -252,7 +252,7 @@ export default function Home() {
               {isLoading ? (
                 <>
                   <div className="w-5 h-5 border-3 border-white/40 border-t-white rounded-full animate-spin" />
-                  <span>Crafting your story…</span>
+                  <span>Creating story &amp; illustrations…</span>
                 </>
               ) : (
                 <>
@@ -267,10 +267,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Footer note */}
-          <p className="text-center text-white/70 text-sm font-semibold mt-4 drop-shadow">
-            📖 4-page illustrated stories crafted just for kids
-          </p>
         </div>
       </div>
 
