@@ -50,7 +50,7 @@ async function generateStoryText(idea: string, apiKey: string): Promise<string> 
       if (!res.ok) {
         const err = await res.text();
         console.error(`Model ${model} error:`, err);
-        if (process.env.OPENROUTER_MODEL) throw new Error(err); // don't retry if user set a specific model
+        if (process.env.OPENROUTER_MODEL) throw new Error(err);
         continue;
       }
 
@@ -65,32 +65,16 @@ async function generateStoryText(idea: string, apiKey: string): Promise<string> 
   throw new Error("All models failed");
 }
 
-async function generateImage(prompt: string, apiKey: string): Promise<string | null> {
-  try {
-    const model = process.env.OPENROUTER_IMAGE_MODEL || "black-forest-labs/flux-schnell";
-    const res = await fetch("https://openrouter.ai/api/v1/images/generations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "StoryLand",
-      },
-      body: JSON.stringify({ model, prompt, n: 1, size: "1024x768" }),
-      signal: AbortSignal.timeout(30000),
-    });
-
-    if (!res.ok) {
-      console.error("Image generation failed:", await res.text());
-      return null;
-    }
-
-    const data = await res.json();
-    return data.data?.[0]?.url ?? null;
-  } catch (err) {
-    console.error("Image generation error:", err);
-    return null;
-  }
+function buildImagePrompt(storyTitle: string, pageTitle: string, content: string): string {
+  return [
+    "Create a children's picture book illustration.",
+    "Style: soft watercolor painting, bright vibrant magical colors, whimsical adorable art.",
+    "No text or words in the image.",
+    `Story: "${storyTitle}".`,
+    `Scene title: "${pageTitle}".`,
+    `Scene: ${content}`,
+    "Cute friendly characters, warm pastel tones, award-winning picture book quality.",
+  ].join(" ");
 }
 
 export async function POST(req: Request) {
@@ -105,7 +89,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "OpenRouter API key not configured" }, { status: 500 });
   }
 
-  // 1 — Generate story text with auto-fallback across models
+  // Generate story text with auto-fallback across models
   let raw: string;
   try {
     raw = await generateStoryText(idea.trim(), apiKey);
@@ -113,7 +97,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Story generation failed. Please try again." }, { status: 502 });
   }
 
-  // Strip markdown code fences if the model wraps in ```json
   const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
 
   let story;
@@ -128,20 +111,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Story format was unexpected. Please try again." }, { status: 500 });
   }
 
-  // 2 — Generate one illustration per page in parallel (failures are non-blocking)
-  const imageUrls = await Promise.all(
-    story.pages.map((page: { title: string; content: string }) =>
-      generateImage(
-        `Children's picture book illustration, soft watercolor style, vibrant friendly colors, whimsical and magical: "${story.title}" — ${page.title}. Scene: ${page.content}. No text overlays, adorable characters, warm pastel tones, award-winning children's book art.`,
-        apiKey
-      )
-    )
-  );
-
+  // Attach image prompts — images are fetched client-side per page via /api/generate-image
   story.pages = story.pages.map(
-    (page: { pageNumber: number; title: string; content: string }, i: number) => ({
+    (page: { pageNumber: number; title: string; content: string }) => ({
       ...page,
-      imageUrl: imageUrls[i] ?? null,
+      imagePrompt: buildImagePrompt(story.title, page.title, page.content),
     })
   );
 
