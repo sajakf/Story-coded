@@ -112,6 +112,7 @@ function usePageAudio(
 ) {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const blobUrlRef = useRef<string | null>(null);
   const onEndRef = useRef(onEnd);
@@ -128,6 +129,14 @@ function usePageAudio(
       blobUrlRef.current = null;
     }
     setPlaying(false);
+    setBlocked(false);
+  }, []);
+
+  const tryPlay = useCallback(() => {
+    if (!audioRef.current) return;
+    audioRef.current.play()
+      .then(() => { setPlaying(true); setBlocked(false); })
+      .catch(() => setBlocked(true));
   }, []);
 
   useEffect(() => {
@@ -159,9 +168,11 @@ function usePageAudio(
           setPlaying(false);
           setTimeout(() => onEndRef.current(), 800);
         };
-        audio.onerror = () => setPlaying(false);
+        audio.onerror = () => { setPlaying(false); setBlocked(false); };
 
-        audio.play().then(() => setPlaying(true)).catch(() => {});
+        audio.play()
+          .then(() => { setPlaying(true); setBlocked(false); })
+          .catch(() => setBlocked(true));
       })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -173,7 +184,7 @@ function usePageAudio(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, enabled]);
 
-  return { playing, loading, stop };
+  return { playing, loading, blocked, stop, tryPlay };
 }
 
 /* ── Main page ── */
@@ -210,7 +221,7 @@ export default function StoryPage() {
     }
   }, [isLast, current, goTo]);
 
-  const { playing: audioPlaying, loading: audioLoading, stop: stopAudio } = usePageAudio(
+  const { playing: audioPlaying, loading: audioLoading, blocked: audioBlocked, stop: stopAudio, tryPlay } = usePageAudio(
     page?.content,
     handleAudioEnd,
     audioEnabled
@@ -258,6 +269,19 @@ export default function StoryPage() {
           <span className="hidden md:inline">{audioEnabled ? "Sound On" : "Sound Off"}</span>
         </button>
       </div>
+
+      {/* Tap-to-play banner (shown when browser blocks autoplay) */}
+      {audioEnabled && audioBlocked && (
+        <div className="w-full flex justify-center px-4 pb-2">
+          <button
+            onClick={tryPlay}
+            className="flex items-center gap-2 font-bold px-5 py-2 rounded-xl animate-bounce-soft text-sm"
+            style={{ background: "rgba(245,224,96,0.15)", border: "1px solid rgba(245,224,96,0.5)", color: "#f5e060" }}
+          >
+            <Volume2 size={16} /> Tap to hear the story narrated
+          </button>
+        </div>
+      )}
 
       {/* Book */}
       <div className="flex-1 flex flex-col items-center justify-center w-full px-4 pb-6">
