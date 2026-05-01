@@ -135,16 +135,36 @@ function usePageAudio(
     if (!window.speechSynthesis) return;
 
     const utt = new SpeechSynthesisUtterance(text);
-    utt.rate = 0.88;
-    utt.pitch = 1.05;
+    utt.rate = 0.82;   // slow, calm storytelling pace
+    utt.pitch = 0.95;  // slightly lower = warmer, softer
     utt.volume = 1;
+
+    // Voice priority: soft/warm female English voices first
+    const VOICE_PRIORITY = [
+      "Microsoft Aria Online (Natural)",
+      "Microsoft Aria",
+      "Samantha",
+      "Google UK English Female",
+      "Microsoft Zira",
+      "Karen",
+      "Moira",
+      "Fiona",
+      "Victoria",
+      "Google US English",
+    ];
 
     const pickVoice = () => {
       const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find((v) =>
-        /samantha|karen|moira|fiona|victoria|daniel|female/i.test(v.name)
-      ) ?? voices.find((v) => v.lang.startsWith("en")) ?? voices[0];
-      if (preferred) utt.voice = preferred;
+      let picked: SpeechSynthesisVoice | undefined;
+      for (const name of VOICE_PRIORITY) {
+        picked = voices.find((v) => v.name === name);
+        if (picked) break;
+      }
+      // fallback: any en-GB female, then any en voice
+      picked ??= voices.find((v) => v.lang === "en-GB");
+      picked ??= voices.find((v) => v.lang.startsWith("en"));
+      picked ??= voices[0];
+      if (picked) utt.voice = picked;
     };
 
     if (window.speechSynthesis.getVoices().length > 0) {
@@ -213,10 +233,13 @@ export default function StoryPage() {
     }
   }, [isLast, current, goTo]);
 
+  // Only start narration once the illustration has loaded (or failed)
+  const imageReady = !imgLoading;
+
   const { playing: audioPlaying, loading: audioLoading, blocked: audioBlocked, stop: stopAudio, tryPlay } = usePageAudio(
     page?.content,
     handleAudioEnd,
-    audioEnabled
+    audioEnabled && imageReady
   );
 
   const navigate = (idx: number, dir: "forward" | "back") => {
