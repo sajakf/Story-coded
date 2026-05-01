@@ -104,87 +104,79 @@ function usePageImage(prompt: string | undefined) {
   return { imageUrl, loading, failed };
 }
 
-/* ── TTS hook ── */
+/* ── TTS hook (Web Speech API — free, no key required) ── */
 function usePageAudio(
   text: string | undefined,
   onEnd: () => void,
   enabled: boolean
 ) {
   const [playing, setPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [blocked, setBlocked] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
+  const uttRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const stop = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-      audioRef.current = null;
-    }
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
+    if (typeof window === "undefined") return;
+    window.speechSynthesis?.cancel();
+    uttRef.current = null;
     setPlaying(false);
-    setBlocked(false);
   }, []);
 
   const tryPlay = useCallback(() => {
-    if (!audioRef.current) return;
-    audioRef.current.play()
-      .then(() => { setPlaying(true); setBlocked(false); })
-      .catch(() => setBlocked(true));
+    if (!uttRef.current) return;
+    window.speechSynthesis?.cancel();
+    window.speechSynthesis?.speak(uttRef.current);
+    setPlaying(true);
   }, []);
 
   useEffect(() => {
     stop();
-    if (!text || !enabled) return;
+    if (!text || !enabled || typeof window === "undefined") return;
+    if (!window.speechSynthesis) return;
 
-    let cancelled = false;
-    setLoading(true);
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 0.88;
+    utt.pitch = 1.05;
+    utt.volume = 1;
 
-    fetch("/api/text-to-speech", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("TTS failed");
-        return r.arrayBuffer();
-      })
-      .then((buf) => {
-        if (cancelled) return;
-        const blob = new Blob([buf], { type: "audio/mpeg" });
-        const url = URL.createObjectURL(blob);
-        blobUrlRef.current = url;
+    const pickVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find((v) =>
+        /samantha|karen|moira|fiona|victoria|daniel|female/i.test(v.name)
+      ) ?? voices.find((v) => v.lang.startsWith("en")) ?? voices[0];
+      if (preferred) utt.voice = preferred;
+    };
 
-        const audio = new Audio(url);
-        audioRef.current = audio;
+    if (window.speechSynthesis.getVoices().length > 0) {
+      pickVoice();
+    } else {
+      window.speechSynthesis.addEventListener("voiceschanged", pickVoice, { once: true });
+    }
 
-        audio.onended = () => {
-          setPlaying(false);
-          setTimeout(() => onEndRef.current(), 800);
-        };
-        audio.onerror = () => { setPlaying(false); setBlocked(false); };
+    utt.onstart = () => setPlaying(true);
+    utt.onend = () => {
+      setPlaying(false);
+      setTimeout(() => onEndRef.current(), 800);
+    };
+    utt.onerror = () => setPlaying(false);
 
-        audio.play()
-          .then(() => { setPlaying(true); setBlocked(false); })
-          .catch(() => setBlocked(true));
-      })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
+    uttRef.current = utt;
+
+    // Small delay so voices are loaded before speaking
+    const t = setTimeout(() => {
+      pickVoice();
+      window.speechSynthesis.speak(utt);
+    }, 300);
 
     return () => {
-      cancelled = true;
-      stop();
+      clearTimeout(t);
+      window.speechSynthesis?.cancel();
+      uttRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, enabled]);
 
-  return { playing, loading, blocked, stop, tryPlay };
+  return { playing, loading: false, blocked: false, stop, tryPlay };
 }
 
 /* ── Main page ── */
