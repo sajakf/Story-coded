@@ -23,8 +23,8 @@ Return ONLY this exact JSON (no other text, no markdown):
   ]
 }`;
 
-const VISION_MODELS = ["google/gemini-1.5-flash", "openai/gpt-4o-mini"];
-const TEXT_MODELS   = ["google/gemini-1.5-flash", "openai/gpt-4o-mini", "anthropic/claude-3-haiku"];
+const VISION_MODELS = ["google/gemma-4-31b-it:free", "google/gemma-4-26b-a4b-it:free", "nvidia/nemotron-nano-12b-v2-vl:free"];
+const TEXT_MODELS   = ["meta-llama/llama-3.3-70b-instruct:free", "google/gemma-4-31b-it:free", "deepseek/deepseek-v4-flash:free"];
 
 async function generateStoryText(
   idea: string,
